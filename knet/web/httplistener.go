@@ -5,10 +5,13 @@
 package web
 
 import (
+
 	"flag"
+	"knet/clt"
+	"knet/ds"
 	"log"
 	"net/http"
-	"overlook/clt"
+	"overlook/codec"
 )
 
 func serveHome(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +29,7 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 
 var Hub *clt.Hub = nil
 
-func Start(host string) {
+func Start(host string, callback ...func(notifier ds.Notifier, client *clt.Client)) {
 	log.Println("init http server at:", host)
 	flag.Parse()
 	if Hub == nil {
@@ -36,7 +39,7 @@ func Start(host string) {
 	http.HandleFunc("/", serveHome)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("recv web socket connection")
-		clt.ServeWs(Hub, w, r)
+		clt.ServeWs(Hub, w, r, codec.NewJsonDecoder(), callback...)
 	})
 	err := http.ListenAndServe(host, nil)
 	if err != nil {

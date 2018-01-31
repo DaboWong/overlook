@@ -3,11 +3,12 @@ package tcp
 import (
 	"bytes"
 	"encoding/binary"
+	"knet/codec"
+	"knet/ds"
 	log "log"
 	"net"
-	"overlook/codec"
-	"overlook/ds"
-	"overlook/msg"
+	codec2 "overlook/codec"
+	"tkbase/msg"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -95,22 +96,22 @@ func (self *Connector) read() bool {
 		}
 	}
 
-//	//decode package
-//	if self.decoder != nil {
-//		e, r := self.decoder.Decode(body, header)
-//		if r != nil {
-//			log.Printf("[%s]error decode msg %s %+v", self.Name(), r.Error(), header)
-//			return false
-//		} else if self.notifier != nil {
-//			log.Printf("[RECV][%s]<-[SVR] id: %d, type: %T, header: %+v, msg: %+v", self.Name(), header.Type, e, header, e)
-//			self.notifier.Notify(e.ID, e, header.Serial)
-//
-//			if self.recChan != nil {
-//				self.recChan <- e
-//			}
-//			return true
-//		}
-//	}
+	//	//decode package
+	//	if self.decoder != nil {
+	//		e, r := self.decoder.Decode(body, header)
+	//		if r != nil {
+	//			log.Printf("[%s]error decode msg %s %+v", self.Name(), r.Error(), header)
+	//			return false
+	//		} else if self.notifier != nil {
+	//			log.Printf("[RECV][%s]<-[SVR] id: %d, type: %T, header: %+v, msg: %+v", self.Name(), header.Type, e, header, e)
+	//			self.notifier.Notify(e.ID, e, header.Serial)
+	//
+	//			if self.recChan != nil {
+	//				self.recChan <- e
+	//			}
+	//			return true
+	//		}
+	//	}
 
 	self.decodeAndNotify(body, header)
 
@@ -258,9 +259,9 @@ func StartConnector(host string, name string, notifier ds.Notifier, syncMode boo
 		write:          make(chan []byte, 256),
 		notifier:       notifier,
 		SyncMode:       syncMode,
-		decoder:        codec.NewProtoBufDecoder(),
+		decoder:        codec2.NewProtoBufDecoder(),
 		name:           name,
-		encoder:        &codec.TKEncoder{},
+		encoder:        &codec2.TKEncoder{},
 		IDataContainer: ds.NewDataContainer(),
 		Component:      make([]func(n ds.Notifier, con *Connector), 0),
 		Host:           host,

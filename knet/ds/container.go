@@ -23,10 +23,10 @@ func (self *DataContainer) GetData(unique string) (IData, bool) {
 }
 
 func (self *DataContainer) addData(data IData) {
-	if _, ok := self.data[data.Unique()]; ok {
-		log.Println("duplicated data add, name: ", data.Unique())
+	if _, ok := self.data[data.GetUnique()]; ok {
+		log.Println("duplicated data add, name: ", data.GetUnique())
 	} else {
-		self.data[data.Unique()] = data
+		self.data[data.GetUnique()] = data
 	}
 }
 

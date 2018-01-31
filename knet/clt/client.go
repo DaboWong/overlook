@@ -5,14 +5,14 @@
 package clt
 
 import (
+	"github.com/gorilla/websocket"
+	"knet/codec"
+	"knet/ds"
 	"log"
 	"net/http"
-	"overlook/codec"
-	"overlook/ds"
+	"overlook/data"
 	"sync/atomic"
 	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 const (
@@ -59,6 +59,8 @@ type Client struct {
 	decoder codec.Decoder
 
 	ds.IDataContainer
+
+	Callbacks []func(notifier ds.Notifier, client *Client)
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -146,7 +148,7 @@ func (self *Client) GetNotifier() ds.Notifier {
 var autoId int32 = 0
 
 // serveWs handles websocket requests from the peer.
-func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request, decoder codec.Decoder, callback ...func(notifier ds.Notifier, client *Client)) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
@@ -154,19 +156,30 @@ func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := &Client{
-		hub:    hub,
-		conn:   conn,
-		send:   make(chan []byte, 256),
-		autoId: autoId,
-		//decoder:        codec.NewJsonDecoder(),
+		hub:            hub,
+		conn:           conn,
+		send:           make(chan []byte, 256),
+		autoId:         autoId,
+		decoder:        decoder,
 		notifier:       ds.NewEventHandler(),
 		IDataContainer: ds.NewDataContainer(),
+		Callbacks:      make([]func(notifier ds.Notifier, client2 *Client), 0),
 	}
 
 	autoId = atomic.AddInt32(&autoId, 1)
 
 	client.hub.register <- client
 	log.Println("register web client, id:", client.autoId)
+
+	client.AddData(data.NewWatch(client))
+
+	client.Callbacks = append(client.Callbacks, callback...)
+
+	for _, value := range callback {
+		if value != nil {
+			value(client.notifier, client)
+		}
+	}
 
 	// Allow collection of memory referenced by the caller by doing all work in
 	// new goroutines.

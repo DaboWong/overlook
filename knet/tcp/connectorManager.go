@@ -34,7 +34,7 @@ func (self *ConnectorManager) Run() {
 			if ok {
 				self.mutex.Lock()
 				log.Printf("add conn, name :%s, %s", con.Name(), con.conn.LocalAddr().String())
-				if _, ok := self.conns[con.Name()] ; ok {
+				if _, ok := self.conns[con.Name()]; ok {
 					log.Fatalln("register error, connection exist!")
 				}
 				self.conns[con.Name()] = con

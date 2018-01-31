@@ -1,7 +1,7 @@
 package codec
 
 import (
-	"overlook/ds"
+	"knet/ds"
 )
 
 type Decoder interface {

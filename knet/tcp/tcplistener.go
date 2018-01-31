@@ -1,11 +1,11 @@
 package tcp
 
 import (
+	"knet/ds"
 	"log"
 	"net"
 	"os"
 	"overlook/codec"
-	"overlook/ds"
 )
 
 type Listener struct {

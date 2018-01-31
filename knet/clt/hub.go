@@ -5,7 +5,7 @@
 package clt
 
 import (
-	"overlook/ds"
+	"knet/ds"
 	"sync"
 )
 
@@ -36,11 +36,11 @@ func NewHub() *Hub {
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
-		mutex:	sync.Mutex{},
+		mutex:      sync.Mutex{},
 	}
 }
 
-func (self *Hub) GetClients() (map[*Client]bool) {
+func (self *Hub) GetClients() map[*Client]bool {
 	return self.clients
 }
 
